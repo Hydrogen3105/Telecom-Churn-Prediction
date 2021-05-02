@@ -88,5 +88,62 @@ for column in df_dev.columns:
                 'p-value': p,
                 'relation': 'No'
             }, ignore_index=True)
-
+print('\nChi square summaries dataframe\n')
 print(df_chiSquare)
+
+# kulczynski measure
+df_kulc = pd.DataFrame({
+    'column': [],
+    'class': [],
+    'kulc': [],
+    'IR': [],
+    'balance': [],
+    'relation': [],
+})
+
+for column in df_dev.columns:
+    if column not in ['tenure', 'MonthlyCharges', 'TotalCharges', 'Churn']:
+        kulc_ls = df_dev.groupby([column, 'Churn']).count().reset_index()
+        for unique in df_dev[column].unique():
+            size_unique = len(df_dev.loc[df_dev[column] == unique])
+            sup_unique_yes = kulc_ls.loc[(kulc_ls[column] == unique) & (kulc_ls['Churn'] == 1)]['TotalCharges'].values[
+                0]
+            kulc = (sup_unique_yes / 2) * ((1 / size_unique) + (1 / n_yes))
+            ir = abs(n_yes - size_unique) / (n_yes + size_unique - sup_unique_yes)
+
+            kulc_status = str()
+            ir_status = str()
+            if abs(kulc - 0.5) < 0.1:
+                kulc_status = 'no relation'
+            elif kulc < 0.5:
+                kulc_status = 'negative relation'
+            else:
+                kulc_status = 'positive relation'
+
+            if ir >= 0.8:
+                ir_status = 'high imbalance'
+            elif ir >= 0.5:
+                ir_status = 'imbalance'
+            elif 0.5 > ir >= 0.3:
+                ir_status = 'low imbalance'
+            else:
+                ir_status = 'very low imbalance or balance'
+
+            df_kulc = df_kulc.append({
+                'column': column,
+                'class': unique,
+                'kulc': kulc,
+                'IR': ir,
+                'balance': ir_status,
+                'relation': kulc_status,
+            },ignore_index=True)
+
+# show all columns
+pd.set_option('display.max_columns', None)
+print('\nKULC and IR dataframe\n')
+print(df_kulc.head())
+
+# summaries of kulc and ir
+df_kulc_sum = df_kulc.groupby(['column']).agg(['mean']).reset_index()
+print('\nKULC and IR summaries dataframe\n')
+print(df_kulc_sum)
