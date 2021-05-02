@@ -114,20 +114,20 @@ for column in df_dev.columns:
             kulc_status = str()
             ir_status = str()
             if abs(kulc - 0.5) < 0.1:
-                kulc_status = 'no relation'
+                kulc_status = 'no relation with yes in churn class'
             elif kulc < 0.5:
-                kulc_status = 'negative relation'
+                kulc_status = 'negative relation with yes in churn class'
             else:
-                kulc_status = 'positive relation'
+                kulc_status = 'positive relation with yes in churn class'
 
             if ir >= 0.8:
-                ir_status = 'high imbalance'
+                ir_status = 'high imbalance with yes in churn class'
             elif ir >= 0.5:
-                ir_status = 'imbalance'
+                ir_status = 'imbalance with yes in churn class'
             elif 0.5 > ir >= 0.3:
-                ir_status = 'low imbalance'
+                ir_status = 'low imbalance with yes in churn class'
             else:
-                ir_status = 'very low imbalance or balance'
+                ir_status = 'very low imbalance or balance with yes in churn class'
 
             df_kulc = df_kulc.append({
                 'column': column,
