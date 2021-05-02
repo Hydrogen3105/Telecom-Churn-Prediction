@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.preprocessing import LabelEncoder
-from scipy.stats import chi2_contingency
+from scipy.stats import chisquare, chi2_contingency
 
 df = pd.read_csv("telecom_users.csv")
 # print(df.info())
@@ -20,7 +20,8 @@ for service in yes_no_classes:
 # change gender Male = M, Female = F
 df_dev['gender'] = ['M' if x == 'Male' else 'F' for x in df_dev['gender']]
 
-# OnlineSecurity, OnlineBackup, DeviceProtection, TechSupport, StreamingTV, StreamingMovies has Yes (2), No (0), No Internet (1)
+# OnlineSecurity, OnlineBackup, DeviceProtection, TechSupport, StreamingTV, StreamingMovies has Yes (2), No (0),
+# No Internet (1)
 le_online = LabelEncoder()
 onlineServices = ['OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 'TechSupport', 'StreamingTV', 'StreamingMovies']
 
@@ -50,4 +51,42 @@ corr = df_dev.corr()
 #         sns.countplot(x=df_dev[feature], data=df_dev)
 #         plt.show()
 
-# 4, 17, 18
+# chi square test
+# number of churn and not churn
+n_yes = len(df_dev.loc[df_dev['Churn'] == 1])
+n_no = len(df_dev.loc[df_dev['Churn'] == 0])
+
+df_chiSquare = pd.DataFrame({
+    'column': [],
+    'chiSquare': [],
+    'p-value': [],
+    'relation': [],
+})
+alpha = 0.05
+
+for column in df_dev.columns:
+    obs_values = []
+    if column not in ['tenure', 'MonthlyCharges', 'TotalCharges', 'Churn']:
+        # print(column)
+        ls = df_dev.groupby([column, 'Churn']).count().reset_index()
+        for unique in df_dev[column].unique():
+            yes = ls.loc[(ls[column] == unique) & (ls['Churn'] == 1)]['TotalCharges'].values.tolist()
+            no = ls.loc[(ls[column] == unique) & (ls['Churn'] == 0)]['TotalCharges'].values.tolist()
+            obs_values.append(no + yes)
+        stat, p, dof, expected = chi2_contingency(obs_values)
+        if p <= alpha:
+            df_chiSquare = df_chiSquare.append({
+                'column': column,
+                'chiSquare': stat,
+                'p-value': p,
+                'relation': 'Yes'
+            }, ignore_index=True)
+        else:
+            df_chiSquare = df_chiSquare.append({
+                'column': column,
+                'chiSquare': stat,
+                'p-value': p,
+                'relation': 'No'
+            }, ignore_index=True)
+
+print(df_chiSquare)
