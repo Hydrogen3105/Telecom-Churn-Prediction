@@ -5,7 +5,7 @@ import seaborn as sns
 from sklearn.preprocessing import LabelEncoder
 from scipy.stats import chisquare, chi2_contingency
 
-df = pd.read_csv("telecom_users.csv")
+df = pd.read_csv("C:/Users/aimza/Desktop/Project Chrun/telecom_users.csv")
 # print(df.info())
 
 df_dev = df.iloc[:, 2:].copy()
